@@ -1,36 +1,56 @@
 #include <math.h>
-#include <time.h>
-typedef enum { Wait,
-               Run,
-               Reload,
-               Write,
-               Read } state;
-typedef enum { Event1,
-               Event2,
-               Event3,
-               Event4
-} eventName;
-
-typedef struct
-{
-    int ID;
-    float power;
-    float runningTime;
-} Machine;
-typedef struct elem
-{
-    state nextState;
-    void (*action)(Machine *machine);
-} elem;
+#include "statemachine.h"
 //actions
 void actionRunMachine(Machine *machine)
 {
-    machine->power += 10;
+    time (&machine->startTime);
 }
+void actionStopMachine (Machine *machine){
+    time (&machine->finishTime);
+    //machine->resourceMined += difftime(machine->finishTime,machine->startTime)*machine->power;   //Power = amount/seconds
+}
+
 //end of actions
-typedef elem StateMachine[Read + 1][Event4 + 1];
-void initStateMachine(StateMachine *sm)
+
+void initStateMachine()
 {
-    sm[Wait][Event1]->nextState = Run;
-    sm[Wait][Event1]->action = actionRunMachine;
+    StateMachine[Idle][Start].nextState = Mining;
+    StateMachine[Idle][Start].action = actionRunMachine;
+
+    StateMachine[Mining][Stop].nextState=Idle;
+    StateMachine[Mining][Stop].action=actionStopMachine;
+
+    StateMachine[Idle][Stop].nextState=Idle;
+    StateMachine[Idle][Stop].action=NULL;
+
+    StateMachine[Mining][Start].nextState=Mining;
+    StateMachine[Mining][Start].action=NULL;
+}
+void createMachineById(Machine *curr,machineType type){
+    if(type==0){
+        curr->ID = uid;
+        curr->type=type;
+        curr->power=10;
+        curr->powerConsumption=1;
+        curr->resourceMined=0;
+        
+    }
+    if(type == 1){
+        curr->ID = uid;
+        curr->type=type;
+        curr->power=23;
+        curr->powerConsumption=10;
+        curr->resourceMined=0;
+    }
+    if(type == 2){
+        curr->ID = uid;
+        curr->type=type;
+        curr->power=23;
+        curr->powerConsumption=60;
+        curr->resourceMined=0;
+    }
+    else{
+        printf("There is no machine with that id\n");
+    }
+    uid++;
 }

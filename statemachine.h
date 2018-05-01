@@ -2,14 +2,13 @@
 #include <time.h>
 #include <stdio.h>
 
-int uid=0; 
 typedef enum { Idle,
                Mining
              } state;
 typedef enum { Start,
                Stop
 } eventName;
-typedef enum {
+typedef enum machineType {
     Weak,
     Medium,
     Heavy

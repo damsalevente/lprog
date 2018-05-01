@@ -67,3 +67,49 @@ A powercost egy szinuszfüggvény lesz, az amplitudóját meghatározza az össz
 - Start time akkor indul, amikor elindul a gép,
 - Finish Time-ot beállítjuk gép szerint
 - Megnézzük a finish-time-ját mindegyiknek.
+
+# Felépítés 
+
+## Calculate events
+    Minden 10 másodpercben fusson le.
+``` python
+for every player:
+    for every machine:
+        get state
+        if state is Mining:
+            Add power*time to resource (time between now and previous iter)
+            Add powerconsumption 
+```
+
+Így meg lesz egy játékosnak az totális fogyasztása
+és a totális anyagmennyisége
+
+## Ciklus után 
+- Áram költség levonása
+- Elküldeni mindenkinek az állását ( szerv-kliens)
+- Pénzügy ellenőrzés ( hátha valaki kiesett)
+
+## Közben (vagyis amikor input van):
+- Esemény beregisztrálása
+
+- [] Pénzügyekre (vásárlás,resource eladás) állapotgép vezérlés
+
+- [x] Machine-re állapotgépes vezérlés
+
+## multiple client with select() function 
+- File descriptor
+
+## Semaphore or Spinlock for game and players
+ - I will reach players and game from two threads.
+ - One thread can get every time they want
+ - One thread will run an update on them every 10 seconds
+ - I need to lock them so no double update will happen, although it might not cause harm, but im not sure so i protecc anyway :)
+ - I have sleep() in my thread, but the critical path is not not that, so i lock after the sleep, i will use spinlock because its easier
+- I could use timer interrupts, or sleep too.
+- TBH we can wait with basic mutex
+
+# File I/O
+## Need to do a configuration file, where we can set parameters for the game
+ - Start money 
+ - inflation rate
+ - stb. stb

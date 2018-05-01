@@ -20,6 +20,7 @@ typedef struct Player{
     double powerConsumption;
     char name [256];
     Machine machines [MAX_MACHINES];
+    state machineStates[MAX_MACHINES];
     int numMachines;
 }Player;
 //for every machine, calculate the Price*consumption/elapsed time
@@ -41,10 +42,14 @@ ConversionRate : Sine function
 PowerCost :
 */
 void updateGame(Game *g);
-void addMachine(Player *p , int machineID);
+void addMachine(Player *p , machineType machineID);
 void createGame(Game *g);
 void tradeResource(Player *p, Game *g,double amount);
-void powerBill(Player * p ,Game * g,double amount);
+void powerBill(Player * p ,Game * g);
 void addResource(Player *p, double amount);
 void createGame(Game *g);
-
+void sellMachine(Player *p);
+void addPlayer(Player *p,char *name);
+void updateForPlayer(Game *g,Player *p);
+void handleMessage(Player *p,int machineIndex,eventName whathappened);
+void getInfo(Player *p, Game *g);

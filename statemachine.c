@@ -7,9 +7,12 @@ void actionRunMachine(Machine *machine)
 }
 void actionStopMachine (Machine *machine){
     time (&machine->finishTime);
-    //machine->resourceMined += difftime(machine->finishTime,machine->startTime)*machine->power;   //Power = amount/seconds
+    machine->resourceMined += difftime(machine->finishTime,machine->startTime)*machine->power;   //Power = amount/updatetime
 }
-
+void ok(Machine * machine)
+{
+    return;
+}
 //end of actions
 
 void initStateMachine()
@@ -21,36 +24,38 @@ void initStateMachine()
     StateMachine[Mining][Stop].action=actionStopMachine;
 
     StateMachine[Idle][Stop].nextState=Idle;
-    StateMachine[Idle][Stop].action=NULL;
+    StateMachine[Idle][Stop].action=ok;
 
     StateMachine[Mining][Start].nextState=Mining;
-    StateMachine[Mining][Start].action=NULL;
+    StateMachine[Mining][Start].action=ok;
 }
 void createMachineById(Machine *curr,machineType type){
-    if(type==0){
-        curr->ID = uid;
+    if(type == Weak){
+        curr->ID = 0;
         curr->type=type;
         curr->power=10;
         curr->powerConsumption=1;
         curr->resourceMined=0;
+        return;
         
     }
-    if(type == 1){
-        curr->ID = uid;
+    if(type == Medium){
+        curr->ID = 0;
         curr->type=type;
         curr->power=23;
         curr->powerConsumption=10;
         curr->resourceMined=0;
+        return;
     }
-    if(type == 2){
-        curr->ID = uid;
+    if(type == Heavy){
+        curr->ID = 0;
         curr->type=type;
         curr->power=23;
         curr->powerConsumption=60;
         curr->resourceMined=0;
+        return;
     }
     else{
-        printf("There is no machine with that id\n");
+      printf("Couldn't find that type,sorry\n");
     }
-    uid++;
 }

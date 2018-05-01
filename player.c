@@ -1,8 +1,10 @@
 #include "player.h"
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 // Add one new machine to the player 
-void addMachine(Player *p , int machineID){
+void addMachine(Player *p , machineType machineID){
     if(p->numMachines==MAX_MACHINES){
         printf("Couldn't add more machines to him\n");
     }
@@ -12,14 +14,20 @@ void addMachine(Player *p , int machineID){
         p->money-=machineID*1.734+500;          //money removed
         p->machines[p->numMachines]=machine;
         p->numMachines++;
+        if(p->money<0){
+            printf("Broke\n");
+        }
     }
 }
 void tradeResource(Player *p, Game *g,double amount){
     p->money+=amount * g->conversionRate;   //get the money
     p->resource-=amount;                    //remove the resource
 }
-void powerBill(Player * p ,Game * g,double amount){
-    p->money -= amount*g->powerCost;
+void powerBill(Player * p ,Game * g){
+    p->money -= p->powerConsumption*g->powerCost;
+    if(p->money<0){
+            printf("Broke\n");
+        }
 }
 void addResource(Player *p, double amount){
     p->resource += amount;    //get the resource from all of the machines
@@ -33,8 +41,53 @@ void updateGame(Game *g){
     g->powerCost =g->powerCost+log(g->totalMiners+1);
 }
 void createGame(Game *g){
+
     g->conversionRate=1.25;
     g->difficulty=1;
     g->powerCost=1;
     g->totalMiners=0;
+}
+void addPlayer(Player *p,char * name)
+{
+    p->money = 3000;
+    p->numMachines=0;
+    strcpy(p->name,name);
+}
+void updateForPlayer(Game *g,Player *p)
+{
+    for(int i=0;i<p->numMachines;i++)
+    {
+        if(p->machineStates[i]==Mining)
+        {
+            p->powerConsumption+=p->machines[i].powerConsumption;   //Every time they run, so we add amount/updatetime
+        }
+        if(p->machines[i].resourceMined !=0){
+            p->resource+= p->machines[i].resourceMined;
+            p->machines[i].resourceMined = 0;
+
+        }
+    }
+}
+void handleMessage(Player *p,int machineIndex,eventName whathappened)
+{
+    elem e;
+    e = StateMachine[p->machineStates[machineIndex]][whathappened];
+    e.action(&p->machines[machineIndex]);
+    p->machineStates[machineIndex]=e.nextState;
+}
+void sellMachine(Player *p)
+{
+    p->money += p->machines[p->numMachines].type*1.28+2000;
+    p->numMachines --;  //delete last
+}
+void getInfo(Player *p,Game *g){
+    printf("Your machines\n");
+    for(int i = 0;i<p->numMachines;i++){
+        printf("State : %d\n",p->machineStates[i]);
+        printf("PARAMTERS\n");
+        printf("Power :%lf\n",p->machines[i].power);
+        printf("PowerConsumption :%lf\n",p->machines[i].powerConsumption);
+        printf("Resource mined :%lf\n",p->machines[i].resourceMined);
+        printf("ID :%d\n",p->machines[i].ID);
+    }
 }

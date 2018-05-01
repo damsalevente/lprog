@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,118 +6,75 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "player.h"
-int get_command(char* line){
-    if(strcmp(line,"START")==0){
-        return 1;
-    }
-    if(strcmp(line,"BUY")==0){
-        return 2;
-    }
-    if(strcmp(line,"GET")==0){
-        return 3;
-    }
-}
-#define port 4444
+
+#define PORT 4444
 
 int main(){
-    initStateMachine();
-    Game game;
-    createGame(&game);
-    Player players[256];
-    int pptr=0;
-    int socketfd,ret;
-    struct sockaddr_in serverAddr;
 
-    int newSocket;
-    struct sockaddr_in newAddr;
+	int sockfd, ret;
+	 struct sockaddr_in serverAddr;
 
-    socklen_t addr_size;
+	int newSocket;
+	struct sockaddr_in newAddr;
 
-    char buffer[512];
-    pid_t childpid;
+	socklen_t addr_size;
 
-    socketfd  = socket(AF_INET,SOCK_STREAM,0);
-     if(socketfd<0){
-        printf("Error in connection\n");
-        exit(1);
-    }
-    printf("Server socket created\n");
+	char buffer[1024];
+	pid_t childpid;
 
-    memset(&serverAddr,'\0',sizeof(serverAddr));
-    serverAddr.sin_addr.s_addr= inet_addr("127.0.0.1");
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if(sockfd < 0){
+		printf("[-]Error in connection.\n");
+		exit(1);
+	}
+	printf("[+]Server Socket is created.\n");
 
-    ret = bind(socketfd,(struct sockaddr*)&serverAddr,sizeof(serverAddr));
-    if(ret<0){
-        printf("Error in binding \n");
-        exit(1);
-    }
-    printf("Bind to port %d\n",port);
-    if(listen(socketfd,5) == 0){
-        printf("Listening...\n");
-    }
-    else{
-        printf("Error in binding\n");
-        exit(1);
-    }
+	memset(&serverAddr, '\0', sizeof(serverAddr));
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_port = htons(PORT);
+	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    while(1){
-        newSocket = accept(socketfd,(struct sockaddr*)&newAddr,&addr_size);
-        if(newSocket <0){
-            exit(1);
-        }
-        printf("Connection accepted from %s:%d\n",inet_ntoa(newAddr.sin_addr),ntohs(newAddr.sin_port));
-        if(childpid=fork() == 0){
-            close(socketfd);
-            while(1){
-                recv(newSocket,buffer,512,0);
-                //Control logic goes here
-                int cmd = get_command(buffer);
-                if(cmd == 1){
-                    Player p;
-                    p.numMachines=0;
-                    p.money=5000;
-                    p.resource=0;
-                    strncpy(p.name,"Karcsi",strlen("Karcsi"));
-                    players[pptr]=p;
-                    pptr++;
-                    memcpy(buffer,"GAME STARTED\n",sizeof("GAME STARTED\n"));
-                    send(newSocket,buffer,strlen(buffer),0);
-                }
-                if(cmd == 2){
-                    for(int i=0;i<pptr;i++){
-                        if(strcmp(players[i].name,"Karcsi")==0){
-                            addMachine(&players[i],0);
-                            memcpy(buffer,"MACHINE ADDED SUCCESFULLY\n",sizeof("MACHINE ADDED SUCCESFULLY\n"));
-                            send(newSocket,buffer,strlen(buffer),0);
-                        }
-                    }
-                }
-                if(cmd == 3){
-                    for(int i=0;i<pptr;i++){
-                        if(strcmp(players[i].name,"Karcsi")==0){
-                            memcpy(buffer,"GET INFORMATION\n",sizeof("GET INFORMATION\n"));
-                            send(newSocket,buffer,strlen(buffer),0);
-                        }
-                    }
-                }
-                if(strcmp(buffer,":exit")==0){
-                    printf("Disconnected from %s:%d\n",inet_ntoa(newAddr.sin_addr),ntohs(newAddr.sin_port));
-                    break;
-                }
-                else{
-                    sleep(5);
-                    printf("Client:%s \n",buffer);
-                    send(newSocket,buffer,strlen(buffer),0);
-                    bzero(buffer,sizeof(buffer));
-                }
-            }
-        }
+	ret = bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+	if(ret < 0){
+		printf("[-]Error in binding.\n");
+		exit(1);
+	}
+	printf("[+]Bind to port %d\n", PORT);
 
-    }
-    close(newSocket);
-    return 0;
+	if(listen(sockfd, 10) == 0){
+		printf("[+]Listening....\n");
+	}else{
+		printf("[-]Error in binding.\n");
+	}
+
+
+	while(1){
+		newSocket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
+		if(newSocket < 0){
+			exit(1);
+		}
+		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+
+		if((childpid = fork()) == 0){
+			close(sockfd);
+
+			while(1){
+				recv(newSocket, buffer, 1024, 0);
+				if(strcmp(buffer, ":exit") == 0){
+					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+					break;
+				}else{
+					printf("Client: %s\n", buffer);
+					send(newSocket, buffer, strlen(buffer), 0);
+					bzero(buffer, sizeof(buffer));
+				}
+			}
+		}
+
+	}
+
+	close(newSocket);
+
+
+	return 0;
 }
-

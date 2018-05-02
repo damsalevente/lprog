@@ -92,7 +92,7 @@ for every player:
 ## Közben (vagyis amikor input van):
 - Esemény beregisztrálása
 
-- [] Pénzügyekre (vásárlás,resource eladás) állapotgép vezérlés
+- [ ] Pénzügyekre (vásárlás,resource eladás) állapotgép vezérlés
 
 - [x] Machine-re állapotgépes vezérlés
 
@@ -114,5 +114,5 @@ for every player:
  - inflation rate
  - stb. stb
 
- ## MultiThread idea thrown away -> timer !
+## MultiThread idea thrown away -> timer !
  

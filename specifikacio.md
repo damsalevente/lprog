@@ -113,3 +113,6 @@ for every player:
  - Start money 
  - inflation rate
  - stb. stb
+
+ ## MultiThread idea thrown away -> timer !
+ 

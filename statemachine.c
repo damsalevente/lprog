@@ -4,10 +4,12 @@
 void actionRunMachine(Machine *machine)
 {
     time (&machine->startTime);
+    printf("Time is now \n");
 }
 void actionStopMachine (Machine *machine){
     time (&machine->finishTime);
     machine->resourceMined += difftime(machine->finishTime,machine->startTime)*machine->power;   //Power = amount/updatetime
+    printf("Time is now\nResource mined: %lf",machine->resourceMined);
 }
 void ok(Machine * machine)
 {

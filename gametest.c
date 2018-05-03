@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
+#include <pthread.h>
 #include <sys/time.h>
 #include <string.h>
 #define MAX_PLAYERS 5
@@ -13,18 +14,12 @@
 Player players[MAX_PLAYERS];
 int playernum = 0;
 Game game;
-
+int update_f = 0;
 void timer_handler(int sig)
 {
-
-    for (int i = 0; i < playernum; i++)
-    {
-        updateForPlayer(&game, &players[i]);
-        updateGame(&game);
-        printf("Game updated");
-    }
-
-    printf("Happened\n");
+    updateGame(&game);  // Game is read only
+    update_f = 1;
+    //printf("Happened\n");
 }
 
 int get_command(char massage[])
@@ -69,23 +64,15 @@ int get_command(char massage[])
 }
 int main()
 {
-
     elem e;
     Game g;
     initStateMachine();
     createGame(&g);
     Player p;
-
-    printf("Conversion rate before:%lf\n", g.conversionRate);
-    printf("P money before init : %lf\n", p.money);
-    addPlayer(&p, "Yolo janos");
-    printf("%lf\n", p.powerConsumption);
-    addMachine(&p, Weak);
-    printf("ONe don\n");
-    addMachine(&p, Weak);
-    addMachine(&p, Heavy);
-    players[0] = p;
-    playernum++;
+    addPlayer(&p,"Peter");
+    addMachine(&p,Weak);
+    players[playernum++]=p;
+    getInfo(&players[0],&game);
     for (int i = 0; i < p.numMachines; i++)
     {
         printf("%lf\n", p.machines[i].power);
@@ -99,12 +86,20 @@ int main()
     tval.it_interval.tv_sec = 1;
     //Handler setup
     signal(SIGALRM, timer_handler);
-    //disable timer
-    setitimer(ITIMER_REAL, &tval, NULL);
+    //Start timer
 
     while (1)
     {
 
+        if(update_f)
+        {
+            for(int i=0 ; i<playernum;i++)
+            {
+                printf("Update for player :%d \n",i);
+                updateForPlayer(&game,&players[i]);
+            }
+            update_f = 0;
+        }
         //setitimer(ITIMER_REAL,&tval,NULL);  //újra felhúzzuk.
         char buffer[26];
         struct tm *tm_info;
@@ -129,13 +124,15 @@ int main()
         }
         if (cmd == 5)
         {
-            handleMessage(&players[0], 0, Start);
+            handleMessage(&players[0], 0, Stop);
+            printf("Resource mined: %lf\n",players[0].machines[0].resourceMined);
+
         }
         if (cmd == 6)
         {
-            handleMessage(&players[0], 0, Stop);
+            handleMessage(&players[0], 0, Start);
         }
 
-        return 0;
     }
+    return 0;
 }

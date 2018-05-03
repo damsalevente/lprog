@@ -12,8 +12,7 @@ void addMachine(Player *p , machineType machineID){
         Machine machine;
         createMachineById(&machine,machineID);  //new machine added
         p->money-=machineID*1.734+500;          //money removed
-        p->machines[p->numMachines]=machine;
-        p->numMachines++;
+        p->machines[p->numMachines++]=machine;
         if(p->money<0){
             printf("Broke\n");
         }

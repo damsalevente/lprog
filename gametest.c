@@ -16,8 +16,7 @@ int playernum = 0;
 Game game;
 int update_f = 0;
 void timer_handler(int sig)
-{
-    updateGame(&game);  // Game is read only
+{  
     update_f = 1;
     //printf("Happened\n");
 }
@@ -68,14 +67,13 @@ int main()
     Game g;
     initStateMachine();
     createGame(&g);
-    Player p;
-    addPlayer(&p,"Peter");
-    addMachine(&p,Weak);
-    players[playernum++]=p;
+    addPlayer(players,&playernum,"napLevente");
+    printf("Size after added 1 element: %d",playernum);
+    addMachine(&players[0],Weak);
     getInfo(&players[0],&game);
-    for (int i = 0; i < p.numMachines; i++)
+    for (int i = 0; i < players[0].numMachines; i++)
     {
-        printf("%lf\n", p.machines[i].power);
+        printf("%lf\n", players[0].machines[i].power);
     }
     eventName eName = Start;
     //Timer
@@ -87,12 +85,14 @@ int main()
     //Handler setup
     signal(SIGALRM, timer_handler);
     //Start timer
-
+    setitimer(ITIMER_REAL,&tval,NULL);
     while (1)
     {
 
-        if(update_f)
+        if(update_f==1)
         {
+            printf("update entered\n");
+            updateGame(&game);  // Game is read only
             for(int i=0 ; i<playernum;i++)
             {
                 printf("Update for player :%d \n",i);
@@ -103,7 +103,11 @@ int main()
         //setitimer(ITIMER_REAL,&tval,NULL);  //újra felhúzzuk.
         char buffer[26];
         struct tm *tm_info;
+            setitimer(ITIMER_REAL,&tval,NULL);
+
         fgets(buffer, 26, stdin);
+            setitimer(ITIMER_REAL,&tval,NULL);
+
         int cmd = get_command(buffer);
         if (cmd == 1)
         {
@@ -111,7 +115,11 @@ int main()
             for (int i = 0; i < playernum; i++)
             {
                 printf("Player number %d", i);
+                    setitimer(ITIMER_REAL,&tval,NULL);
+
                 getInfo(&players[i], &g);
+                    setitimer(ITIMER_REAL,&tval,NULL);
+
             }
         }
         if (cmd == 2)

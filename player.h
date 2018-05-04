@@ -18,7 +18,7 @@ typedef struct Player{
     float money;
     double resource;
     double powerConsumption;
-    char name [256];
+    int name;
     Machine machines [MAX_MACHINES];
     state machineStates[MAX_MACHINES];
     int numMachines;
@@ -49,7 +49,7 @@ void powerBill(Player * p ,Game * g);
 void addResource(Player *p, double amount);
 void createGame(Game *g);
 void sellMachine(Player *p);
-void addPlayer(Player *p,char *name);
+void addPlayer(Player *p,int *size,int name);
 void updateForPlayer(Game *g,Player *p);
 void handleMessage(Player *p,int machineIndex,eventName whathappened);
 void getInfo(Player *p, Game *g);

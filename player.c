@@ -46,11 +46,15 @@ void createGame(Game *g){
     g->powerCost=1;
     g->totalMiners=0;
 }
-void addPlayer(Player *p,char * name)
+//need to check before add new player
+void addPlayer(Player *p,int *size,int name)
 {
-    p->money = 3000;
-    p->numMachines=0;
-    strcpy(p->name,name);
+    p[*size].money = 3000;
+    p[*size].numMachines=0;
+    p[*size].name = name;
+    (*size)++;
+    printf("newsize: %d",*size);
+    
 }
 void updateForPlayer(Game *g,Player *p)
 {
@@ -61,7 +65,7 @@ void updateForPlayer(Game *g,Player *p)
             p->powerConsumption+=p->machines[i].powerConsumption;   //Every time they run, so we add amount/updatetime
         }
         if(p->machines[i].resourceMined !=0){
-            p->resource+= p->machines[i].resourceMined;
+            p->resource+= p->machines[i].resourceMined;     // Could've written better but oh man
             p->machines[i].resourceMined = 0;
 
         }
@@ -83,7 +87,7 @@ void getInfo(Player *p,Game *g){
     printf("Your machines\n");
     for(int i = 0;i<p->numMachines;i++){
         printf("State : %d\n",p->machineStates[i]);
-        printf("PARAMTERS\n");
+        printf("PARAMETERS\n");
         printf("Power :%lf\n",p->machines[i].power);
         printf("PowerConsumption :%lf\n",p->machines[i].powerConsumption);
         printf("Resource mined :%lf\n",p->machines[i].resourceMined);

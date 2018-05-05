@@ -25,9 +25,13 @@ int main()
 {
 	//Game init
 	Game g;
+	//Player
+	Player players [1024];
+	int playernum = 0;
 	initStateMachine();
-	createGame(&g); //from config file
-					//Timer
+	//from config file
+	createGame(&g);
+	//Timer
 	struct itimerval tval;
 	timerclear(&tval.it_interval); /* zero interval means no reset of timer */
 	timerclear(&tval.it_value);
@@ -102,11 +106,11 @@ int main()
 				}
 				else
 				{
-					// Game logic
 					if (strcmp(buffer, ":start") == 0)
 					{
 						printf("Creating player from %s:%d\n Name will be :%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port),ntohs(newAddr.sin_port));
 						char * msg ="Player created";
+						addPlayer(players,&playernum,ntohs(newAddr.sin_port));
 						send(newSocket,msg,strlen(msg),0);
 					}
 					else{

@@ -5,7 +5,7 @@
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>
-#define MAX_MACHINES 256
+#define MAX_MACHINES 16
 
 typedef struct Game{
     float difficulty;

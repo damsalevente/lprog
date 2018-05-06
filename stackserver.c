@@ -54,7 +54,8 @@ void *Child(void *arg)
 
     while (1)
     {
-        recv(client, line, 100, 0);
+        bytes_read = recv(client, line, sizeof(line), 0);
+        line[bytes_read] = '\0';
         printf("DEBUG: buffer:\n %s", line);
         if (strcmp(line, ":exit") == 0)
         {
@@ -66,7 +67,7 @@ void *Child(void *arg)
         {
             if (strcmp(line, ":start") == 0)
             {
-              
+
                 send(client, line, strlen(line), 0);
             }
             if (strcmp(line, ":addmachine") == 0)
@@ -74,38 +75,62 @@ void *Child(void *arg)
                 printf("Trying to add a a new machine to player with id:%d", id);
                 pthread_mutex_lock(&mutex1);
                 addMachine(&players[id], Weak);
-                printf("Added machine %lf:", players[id].machines[players[id].numMachines-1].power);
+                printf("Added machine %lf:", players[id].machines[players[id].numMachines - 1].power);
                 pthread_mutex_unlock(&mutex1);
             }
-            if(strncmp(line,":start",6) == 0)
+            if (strncmp(line, ":start", 6) == 0)
             {
-                char *cmd;
-                cmd = strtok(line," ");
-                cmd = strtok(NULL," ");
-                int machineNumber = atoi(cmd);
-                handleMessage(&players[id],machineNumber,Start);
+                char *cmd = strtok(line, ":");
+                cmd = strtok(NULL, ":");
+                if (cmd)
+                {
+                    int data = atoi(cmd);
+                    if (data < players[id].numMachines)
+                    {
+                        handleMessage(&players[id], 0, Start);
+                    }
+                    else
+                    {
+                        printf("Failed to start machine: no index found\n");
+                    }
+                }
+                else
+                {
+                    printf("Failed to start machine\n");
+                }
             }
-            if(strncmp(line,":stop",5) == 0)
+            if (strncmp(line, ":stop", 5) == 0)
             {
-                char *cmd;
-                cmd = strtok(line," ");
-                cmd = strtok(NULL," ");
-                int machineNumber = atoi(cmd);
-                handleMessage(&players[id],machineNumber,Stop);
+                char *cmd = strtok(line, ":");
+                cmd = strtok(NULL, ":");
+                if (cmd)
+                {
+                    int data = atoi(cmd);
+                    if (data < players[id].numMachines)
+                    {
+                        handleMessage(&players[id], 0, Stop);
+                    }
+                    else
+                    {
+                        printf("Failed to stop machine: no index found\n");
+                    }
+                }
+                else
+                {
+                    printf("Failed to stop machine\n");
+                }
             }
             if (strcmp(line, ":getinfo") == 0)
             {
                 char msg[100];
                 sprintf(msg, "Game info : %lf ; %lf;%lf;%d", game.difficulty, game.conversionRate, game.powerCost, game.totalMiners);
-                getInfo(&players[id],&game);
+                getInfo(&players[id], &game);
                 send(client, msg, strlen(msg), 0);
             }
             else
             {
                 send(client, line, strlen(line), 0);
             }
-            // end of game logic
-            bzero(line, sizeof(line));
         }
     }
     close(client);

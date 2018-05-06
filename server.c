@@ -15,22 +15,24 @@
 
 #define PORT 4444
 int flag = 0;
+Game g;
 void timer_handler()
 {
 	printf("Happened\n");
+	updateGame(&g);
 	flag = 1;
 }
 
 int main()
 {
 	//Game init
-	Game g;
-	//Player
-	Player players [1024];
+	createGame(&g);
+
+	Player players[5];
 	int playernum = 0;
 	initStateMachine();
 	//from config file
-	createGame(&g);
+	
 	//Timer
 	struct itimerval tval;
 	timerclear(&tval.it_interval); /* zero interval means no reset of timer */
@@ -94,7 +96,8 @@ int main()
 		if ((childpid = fork()) == 0)
 		{
 			close(sockfd);
-
+			Game g; 	//create a unique game for child process
+			createGame(&g);																						
 			while (1)
 			{
 				recv(newSocket, buffer, 1024, 0);
@@ -111,6 +114,12 @@ int main()
 						printf("Creating player from %s:%d\n Name will be :%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port),ntohs(newAddr.sin_port));
 						char * msg ="Player created";
 						addPlayer(players,&playernum,ntohs(newAddr.sin_port));
+						send(newSocket,msg,strlen(msg),0);
+					}
+					if(strcmp(buffer,":getinfo") == 0)
+					{
+						char msg[500];
+						sprintf(msg,"Game info : %lf ; %lf;%lf;%d",g.difficulty,g.conversionRate,g.powerCost,g.totalMiners);
 						send(newSocket,msg,strlen(msg),0);
 					}
 					else{

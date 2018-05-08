@@ -4,12 +4,11 @@
 void actionRunMachine(Machine *machine)
 {
     time (&machine->startTime);
-    printf("Time is now \n");
 }
 void actionStopMachine (Machine *machine){
     time (&machine->finishTime);
     machine->resourceMined += difftime(machine->finishTime,machine->startTime)*machine->power;   //Power = amount/updatetime
-    printf("Time is now\nResource mined: %lf",machine->resourceMined);
+    printf("Resource mined: %lf",machine->resourceMined);
 }
 void ok(Machine * machine)
 {
@@ -36,7 +35,7 @@ void createMachineById(Machine *curr,machineType type){
         curr->ID = 0;
         curr->type=type;
         curr->power=10;
-        curr->powerConsumption=1;
+        curr->powerConsumption=(double)1/60;
         curr->resourceMined=0;
         return;
         
@@ -45,7 +44,7 @@ void createMachineById(Machine *curr,machineType type){
         curr->ID = 0;
         curr->type=type;
         curr->power=23;
-        curr->powerConsumption=10;
+        curr->powerConsumption=(double)10/60;   // /10minute
         curr->resourceMined=0;
         return;
     }
@@ -53,7 +52,7 @@ void createMachineById(Machine *curr,machineType type){
         curr->ID = 0;
         curr->type=type;
         curr->power=23;
-        curr->powerConsumption=60;
+        curr->powerConsumption=1;
         curr->resourceMined=0;
         return;
     }

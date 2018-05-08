@@ -115,4 +115,10 @@ for every player:
  - stb. stb
 
 ## MultiThread idea thrown away -> timer !
- 
+
+## meg kell oldani a disconnect utáni törlést
+## Machine-nek törölhetőnek kell lennie index alapján
+## trade mintha nem futna le
+[x] Player adding and deleting works just fine 
+[ ] Machine deletion not working properly, it will only delete the last element from the list, by overriding it 
+[ ] Add more functionality, and be more verbose to the client about what is actually happening 

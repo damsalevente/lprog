@@ -56,6 +56,7 @@ void addPlayer(Player *p,int *size,int name)
     printf("newsize: %d",*size);
     
 }
+/* Called every X sec */
 void updateForPlayer(Game *g,Player *p)
 {
     for(int i=0;i<p->numMachines;i++)
@@ -64,10 +65,9 @@ void updateForPlayer(Game *g,Player *p)
         {
             p->powerConsumption+=p->machines[i].powerConsumption;   //Every time they run, so we add amount/updatetime
         }
-        if(p->machines[i].resourceMined !=0){
+        if(p->machines[i].resourceMined != 0){
             p->resource+= p->machines[i].resourceMined;     // Could've written better but oh man
             p->machines[i].resourceMined = 0;
-
         }
     }
 }
@@ -78,13 +78,14 @@ void handleMessage(Player *p,int machineIndex,eventName whathappened)
     e.action(&p->machines[machineIndex]);
     p->machineStates[machineIndex]=e.nextState;
 }
-void sellMachine(Player *p)
+void sellMachine(Player *p,int machineIndex)
 {
     p->money += p->machines[p->numMachines].type*1.28+2000;
     p->numMachines --;  //delete last
 }
 void getInfo(Player *p,Game *g){
-    printf("Your machines\n");
+    printf("Players machines\n");
+    printf("Money:%lf,Id: %d,Power cons:%lf,Resource: %lf",p->money,p->name,p->powerConsumption,p->resource);
     for(int i = 0;i<p->numMachines;i++){
         printf("State : %d\n",p->machineStates[i]);
         printf("PARAMETERS\n");

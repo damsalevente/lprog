@@ -48,7 +48,7 @@ void tradeResource(Player *p, Game *g,double amount);
 void powerBill(Player * p ,Game * g);
 void addResource(Player *p, double amount);
 void createGame(Game *g);
-void sellMachine(Player *p);
+void sellMachine(Player *p,int machineIndex);
 void addPlayer(Player *p,int *size,int name);
 void updateForPlayer(Game *g,Player *p);
 void handleMessage(Player *p,int machineIndex,eventName whathappened);

@@ -92,9 +92,9 @@ for every player:
 ## Közben (vagyis amikor input van):
 - Esemény beregisztrálása
 
-- [ ] Pénzügyekre (vásárlás,resource eladás) állapotgép vezérlés
+-[ ] Pénzügyekre (vásárlás,resource eladás) állapotgép vezérlés
 
-- [x] Machine-re állapotgépes vezérlés
+-[x] Machine-re állapotgépes vezérlés
 
 ## multiple client with select() function 
 - File descriptor

@@ -25,21 +25,21 @@ int playernum = 0;
 int flag = 0;
 int uid = 0;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+
 void *UpdateThread()
 {
     while (1)
     {
-        printf("Game update started in thread\n");
+        printf("- Game update\n");
         pthread_mutex_lock(&mutex1);
         updateGame(&game);
         game.totalMiners = 0;
         for (int i = 0; i < playernum; i++)
         {
             updateForPlayer(&game, &players[i]);
-            game.totalMiners += players[i].numMachines;
         }
+        flag = 1;
         pthread_mutex_unlock(&mutex1);
-        printf("Game update finished\n");
         sleep(10);
     }
 }
@@ -72,7 +72,7 @@ void removePlayer(int id)
 /* Gameupdate handler */
 void timer_handler()
 {
-    printf("Game update started\n");
+    printf("- Game update\n");
     pthread_mutex_lock(&mutex1);
     updateGame(&game);
     game.totalMiners = 0;
@@ -84,24 +84,23 @@ void timer_handler()
     pthread_mutex_unlock(&mutex1);
 }
 /*--------------------------------------------------------------------*/
-/*--- Child - echo servlet                                         ---*/
+/*--- Child - echo server                                          ---*/
 /*--------------------------------------------------------------------*/
 void *Child(void *arg)
 {
-    char line[100];
+    char line[256];
     int bytes_read;
     int client = *(int *)arg;
-    char s_buffer[100];
+    char s_buffer[1024];
     pthread_mutex_lock(&mutex1);
     int id = uid++;
     addPlayer(players, &playernum, id);
     pthread_mutex_unlock(&mutex1);
-    printf("Creating player. Name will be :%d\n", id);
+    printf("Creating player.ID will be :%d\n", id);
 
     while (1)
     {
-        s_buffer[0] = '\0';
-        bytes_read = recv(client, line, sizeof(line), 0);
+        bytes_read = recv(client, line, sizeof(line) - 1, 0);
         line[bytes_read] = '\0';
         int idx = findPlayer(id);
         if (idx < 0)
@@ -110,35 +109,30 @@ void *Child(void *arg)
         }
         if (strcmp(line, ":exit") == 0)
         {
-            playernum--;
             printf("Disconnected\n");
             break;
         }
         else
         {
-            if (strncmp(line, ":addmachine",11) == 0)
+            if (strncmp(line, ":addmachine", 11) == 0)
             {
-                 char *cmd = strtok(line, ":");
-                 int data = 0;
+                char *cmd = strtok(line, ":");
+                int data = 0;
                 cmd = strtok(NULL, ":");
-                if(cmd)
+                if (cmd)
                 {
-               data = atoi(cmd);
-                if (data<3 && data >=0)
-                {
-
+                    data = atoi(cmd);
+                    if (data > 3 || data < 0)
+                    {
+                        data = 0;
+                    }
                 }
-                else{
-                    data = 0;
-                }
-                }
-                printf("Trying to add a a new machine to player with id:%d", id);
-                pthread_mutex_lock(&mutex1);
+                printf("Trying to add a a new machine to player with id:%d\n", id);
                 addMachine(&players[idx], data);
-                pthread_mutex_unlock(&mutex1);
-                printf("Added machine %lf:", players[idx].machines[players[idx].numMachines - 1].power);
+                printf("Machine added:%d\n", players[idx].machines[players[idx].numMachines - 1].ID);
+                sprintf(s_buffer, "Machine succesfully added, index : %d\n", players[idx].numMachines);
             }
-            if (strncmp(line, ":start", 6) == 0)
+            else if (strncmp(line, ":start", 6) == 0)
             {
                 char *cmd = strtok(line, ":");
                 cmd = strtok(NULL, ":");
@@ -147,9 +141,8 @@ void *Child(void *arg)
                     int data = atoi(cmd);
                     if (data < players[idx].numMachines)
                     {
-                        pthread_mutex_lock(&mutex1);
+                        sprintf(s_buffer,"Machines %d started\n",data);
                         handleMessage(&players[idx], data, Start);
-                        pthread_mutex_unlock(&mutex1);
                     }
                     else
                     {
@@ -161,7 +154,7 @@ void *Child(void *arg)
                     printf("Failed to start machine\n");
                 }
             }
-            if (strncmp(line, ":stop", 5) == 0)
+            else if (strncmp(line, ":stop", 5) == 0)
             {
                 char *cmd = strtok(line, ":");
                 cmd = strtok(NULL, ":");
@@ -170,9 +163,7 @@ void *Child(void *arg)
                     int data = atoi(cmd);
                     if (data < players[idx].numMachines)
                     {
-                        pthread_mutex_lock(&mutex1);
                         handleMessage(&players[idx], data, Stop);
-                        pthread_mutex_unlock(&mutex1);
                         sprintf(s_buffer, "Machine %d stopped!", data);
                     }
                     else
@@ -182,10 +173,10 @@ void *Child(void *arg)
                 }
                 else
                 {
-                    sprintf(s_buffer, "Failed to stop machine\n");
+                    sprintf(s_buffer, "Failed to stop machine");
                 }
             }
-            if (strncmp(line, ":trade", 6) == 0)
+            else if (strncmp(line, ":trade", 6) == 0)
             {
                 char *cmd = strtok(line, ":");
                 cmd = strtok(NULL, ":"); //Second chunk
@@ -194,10 +185,8 @@ void *Child(void *arg)
                     int amount = atoi(cmd);
                     if (amount < players[idx].resource)
                     {
-                        pthread_mutex_lock(&mutex1);
                         tradeResource(&players[idx], &game, amount);
-                        pthread_mutex_unlock(&mutex1);
-                        sprintf(s_buffer, "Your money :%lf", players[idx].money);
+                        sprintf(s_buffer, "Succesfully traded %d for %2.2lf", amount, game.conversionRate);
                     }
                     else
                     {
@@ -206,24 +195,39 @@ void *Child(void *arg)
                     }
                 }
             }
-            if (strcmp(line, ":getinfo") == 0)
+            else if (strcmp(line, ":getinfo") == 0)
             {
-                sprintf(s_buffer, "%lf;%lf;%lf;%d", game.difficulty, game.conversionRate, game.powerCost, game.totalMiners);
-                pthread_mutex_lock(&mutex1);
-                getInfo(&players[idx], &game);
-                pthread_mutex_unlock(&mutex1);
-                send(client, s_buffer, strlen(s_buffer), 0);
+                sprintf(s_buffer,
+                        "Difficulty:%2.2lf\nConversion rate:%2.2lf\n Powercost: %2.2lf\n Number of miners: %d",
+                        game.difficulty,
+                        game.conversionRate,
+                        game.powerCost,
+                        game.totalMiners);
+                //getInfo(&players[idx], &game);
+                //send(client, s_buffer, strlen(s_buffer), 0);
+            }
+            else if(strcmp(line,":getmachines") == 0)
+            {
+                for(int i = 0 ;i< players[idx].numMachines;i++)
+                {
+                    sprintf(s_buffer+strlen(s_buffer),"Index:%d\tType:%d\tStatus: %d\n",i,players[idx].machines[i].type,players[idx].machineStates[i]);
+                }
+            }
+            else if(strcmp(line,":getplayerinfo") == 0)
+            {
+                sprintf(s_buffer,"Money:%2.2f\nResource:%2.2lf\nNumber of machines:%d\n",players[idx].money,players[idx].resource,players[idx].numMachines);
             }
             else
             {
-                strcpy(s_buffer, line);
+                sprintf(s_buffer,"Invalid operation\n");
             }
-            send(client, s_buffer, strlen(s_buffer), 0);
-            memset(s_buffer, 0x00, 100);
         }
+        send(client, s_buffer, strlen(s_buffer) - 1, 0);
+        printf("Sent data:%s\n -> size: %d\n", s_buffer, strlen(s_buffer));
+        s_buffer[0] = '\0';
     }
     close(client);
-    removePlayer(id);
+    //removePlayer(id);
     return arg;
 }
 

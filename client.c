@@ -63,7 +63,7 @@ int main()
 			}
 			else
 			{
-				//puts(gamebuf);
+				//puts(buffer);
 				sscanf(buffer, "Difficulty:%f\nConversion rate:%f\n Powercost: %f\n Number of miners:%d", &game_parameters.difficulty, &game_parameters.conversionRate, &game_parameters.powerCost, &game_parameters.totalMiners);
 			}
 			flag = 0 ;

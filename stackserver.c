@@ -33,7 +33,6 @@ void *UpdateThread()
         printf("- Game update\n");
         pthread_mutex_lock(&mutex1);
         updateGame(&game);
-        game.totalMiners = 0;
         for (int i = 0; i < playernum; i++)
         {
             updateForPlayer(&game, &players[i]);
@@ -75,11 +74,9 @@ void timer_handler()
     printf("- Game update\n");
     pthread_mutex_lock(&mutex1);
     updateGame(&game);
-    game.totalMiners = 0;
     for (int i = 0; i < playernum; i++)
     {
         updateForPlayer(&game, &players[i]);
-        game.totalMiners += players[i].numMachines;
     }
     pthread_mutex_unlock(&mutex1);
 }
@@ -106,6 +103,11 @@ void *Child(void *arg)
         if (idx < 0)
         {
             PANIC("Player deleted\n");
+        }
+        if(players[idx].money < 0)
+        {
+            send(client, "You lost, goodbye\n", 19, 0);
+            break;
         }
         if (strcmp(line, ":exit") == 0)
         {
@@ -141,8 +143,11 @@ void *Child(void *arg)
                     int data = atoi(cmd);
                     if (data < players[idx].numMachines)
                     {
-                        sprintf(s_buffer,"Machines %d started\n",data);
+                        sprintf(s_buffer, "Machines %d started\n", data);
                         handleMessage(&players[idx], data, Start);
+                        pthread_mutex_lock(&mutex1);
+                        game.totalMiners++;
+                        pthread_mutex_unlock(&mutex1);
                     }
                     else
                     {
@@ -165,6 +170,9 @@ void *Child(void *arg)
                     {
                         handleMessage(&players[idx], data, Stop);
                         sprintf(s_buffer, "Machine %d stopped!", data);
+                        pthread_mutex_lock(&mutex1);
+                        game.totalMiners--;
+                        pthread_mutex_unlock(&mutex1);
                     }
                     else
                     {
@@ -203,23 +211,32 @@ void *Child(void *arg)
                         game.conversionRate,
                         game.powerCost,
                         game.totalMiners);
+                for (int i = 0; i < players[idx].numMachines; i++)
+                {
+                    sprintf(s_buffer+strlen(s_buffer),"State : %d\n", players[idx].machineStates[i]);
+                    sprintf(s_buffer+strlen(s_buffer),"PARAMETERS\n");
+                    sprintf(s_buffer+strlen(s_buffer),"Power :%lf\n", players[idx].machines[i].power);
+                    sprintf(s_buffer+strlen(s_buffer),"PowerConsumption :%lf\n", players[idx].machines[i].powerConsumption);
+                    sprintf(s_buffer+strlen(s_buffer),"Resource mined :%lf\n", players[idx].machines[i].resourceMined);
+                    sprintf(s_buffer+strlen(s_buffer),"ID :%d\n", players[idx].machines[i].ID);
+                }
                 //getInfo(&players[idx], &game);
                 //send(client, s_buffer, strlen(s_buffer), 0);
             }
-            else if(strcmp(line,":getmachines") == 0)
+            else if (strcmp(line, ":getmachines") == 0)
             {
-                for(int i = 0 ;i< players[idx].numMachines;i++)
+                for (int i = 0; i < players[idx].numMachines; i++)
                 {
-                    sprintf(s_buffer+strlen(s_buffer),"Index:%d\tType:%d\tStatus: %d\n",i,players[idx].machines[i].type,players[idx].machineStates[i]);
+                    sprintf(s_buffer + strlen(s_buffer), "Index:%d\tType:%d\tStatus: %d\n", i, players[idx].machines[i].type, players[idx].machineStates[i]);
                 }
             }
-            else if(strcmp(line,":getplayerinfo") == 0)
+            else if (strcmp(line, ":getplayerinfo") == 0)
             {
-                sprintf(s_buffer,"Money:%2.2f\nResource:%2.2lf\nNumber of machines:%d\n",players[idx].money,players[idx].resource,players[idx].numMachines);
+                sprintf(s_buffer, "Money:%2.2f\nResource:%2.2lf\nNumber of machines:%d\n", players[idx].money, players[idx].resource, players[idx].numMachines);
             }
             else
             {
-                sprintf(s_buffer,"Invalid operation\n");
+                sprintf(s_buffer, "Invalid operation\n");
             }
         }
         send(client, s_buffer, strlen(s_buffer) - 1, 0);

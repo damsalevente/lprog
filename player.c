@@ -53,7 +53,7 @@ void addPlayer(Player *p,int *size,int name)
     p[*size].numMachines=0;
     p[*size].name = name;
     (*size)++;
-    printf("newsize: %d",*size);
+    //printf("newsize: %d",*size);
     
 }
 /* Called every X sec */
@@ -64,12 +64,15 @@ void updateForPlayer(Game *g,Player *p)
         if(p->machineStates[i]==Mining)
         {
             p->powerConsumption+=p->machines[i].powerConsumption;   //Every time they run, so we add amount/updatetime
+            g->totalMiners++;
         }
         if(p->machines[i].resourceMined != 0){
-            p->resource+= p->machines[i].resourceMined;     // Could've written better but oh man
+            p->resource+= p->machines[i].resourceMined;     
             p->machines[i].resourceMined = 0;
         }
     }
+    p->money -= p->powerConsumption *  g->powerCost;
+   
 }
 void handleMessage(Player *p,int machineIndex,eventName whathappened)
 {
